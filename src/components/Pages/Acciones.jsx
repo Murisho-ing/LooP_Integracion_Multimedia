@@ -1,0 +1,168 @@
+import React, { useState } from 'react';
+
+const Acciones = ({ openActionModal }) => {
+    const [filter, setFilter] = useState('all');
+
+    const tasks = [
+        { id: 1, name: 'Llevar bolsa reutilizable al supermercado', category: 'reutilizar', xp: 50, categoryIcon: '♻️', categoryName: 'Reutilizar', initialCompleted: true },
+        { id: 2, name: 'Reducir tiempo de ducha a 5 minutos', category: 'reducir', xp: 30, categoryIcon: '📉', categoryName: 'Reducir', initialCompleted: true },
+        { id: 3, name: 'Separar residuos orgánicos e inorgánicos', category: 'reciclar', xp: 40, categoryIcon: '🗑️', categoryName: 'Reciclar', initialCompleted: false },
+        { id: 4, name: 'Reparar prenda de ropa en lugar de comprar nueva', category: 'reparar', xp: 60, categoryIcon: '🔧', categoryName: 'Reparar', initialCompleted: false },
+    ];
+
+    const [completedTasks, setCompletedTasks] = useState(
+        tasks.filter(t => t.initialCompleted).map(t => t.id)
+    );
+
+    const toggleTask = (id) => {
+        setCompletedTasks(prev => 
+            prev.includes(id) ? prev.filter(taskId => taskId !== id) : [...prev, id]
+        );
+    };
+
+    const filteredTasks = filter === 'all' ? tasks : tasks.filter(t => t.category === filter);
+
+    return (
+        <div id="page-acciones" className="page active-page">
+            <div className="page-header">
+                <div>
+                    <h1>Tus Acciones</h1>
+                    <p className="greeting-sub">Registra y gestiona tus acciones sostenibles diarias</p>
+                </div>
+                <button className="btn btn-primary" id="btn-nueva-accion" onClick={openActionModal}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Nueva Acción
+                </button>
+            </div>
+
+            {/* Filtros */}
+            <div className="actions-filters" id="actions-filters">
+                <button className={`filter-btn ${filter === 'all' ? 'active' : ''}`} onClick={() => setFilter('all')}>Todas</button>
+                <button className={`filter-btn ${filter === 'reutilizar' ? 'active' : ''}`} onClick={() => setFilter('reutilizar')}>♻️ Reutilizar</button>
+                <button className={`filter-btn ${filter === 'reducir' ? 'active' : ''}`} onClick={() => setFilter('reducir')}>📉 Reducir</button>
+                <button className={`filter-btn ${filter === 'reciclar' ? 'active' : ''}`} onClick={() => setFilter('reciclar')}>🗑️ Reciclar</button>
+                <button className={`filter-btn ${filter === 'reparar' ? 'active' : ''}`} onClick={() => setFilter('reparar')}>🔧 Reparar</button>
+                <button className={`filter-btn ${filter === 'intercambiar' ? 'active' : ''}`} onClick={() => setFilter('intercambiar')}>🔄 Intercambiar</button>
+            </div>
+
+            {/* Tareas Diarias Detalle */}
+            <div className="card" id="card-daily-tasks-detail">
+                <div className="card-header-flex">
+                    <h3>Tareas de Hoy</h3>
+                    <span className="tasks-badge">{completedTasks.length}/{tasks.length} completadas</span>
+                </div>
+                <div className="task-list" id="task-list">
+                    {filteredTasks.map(task => {
+                        const isCompleted = completedTasks.includes(task.id);
+                        return (
+                            <div key={task.id} className={`task-item ${isCompleted ? 'completed' : ''}`} onClick={() => toggleTask(task.id)}>
+                                <div className={`task-check ${isCompleted ? 'checked' : ''}`}>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                </div>
+                                <div className="task-info">
+                                    <span className="task-name">{task.name}</span>
+                                    <span className="task-category">{task.categoryIcon} {task.categoryName}</span>
+                                </div>
+                                <span className="task-xp">+{task.xp} XP</span>
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+
+            {/* Historial de Acciones */}
+            <div className="card" id="card-history">
+                <h3>Historial de Acciones</h3>
+                <div className="history-list" id="history-list">
+                    <div className="history-day">
+                        <h4 className="history-date">Hoy - 14 Abril 2026</h4>
+                        <div className="history-item">
+                            <div className="history-icon reutilizar">♻️</div>
+                            <div className="history-info">
+                                <span>Reutilicé envases de vidrio para almacenamiento</span>
+                                <span className="history-time">10:30 AM</span>
+                            </div>
+                            <span className="history-xp">+40 XP</span>
+                        </div>
+                        <div className="history-item">
+                            <div className="history-icon reducir">📉</div>
+                            <div className="history-info">
+                                <span>Usé transporte público en lugar de auto</span>
+                                <span className="history-time">8:15 AM</span>
+                            </div>
+                            <span className="history-xp">+35 XP</span>
+                        </div>
+                    </div>
+                    <div className="history-day">
+                        <h4 className="history-date">Ayer - 13 Abril 2026</h4>
+                        <div className="history-item">
+                            <div className="history-icon reciclar">🗑️</div>
+                            <div className="history-info">
+                                <span>Llevé reciclables al centro de acopio</span>
+                                <span className="history-time">5:00 PM</span>
+                            </div>
+                            <span className="history-xp">+55 XP</span>
+                        </div>
+                        <div className="history-item">
+                            <div className="history-icon intercambiar">🔄</div>
+                            <div className="history-info">
+                                <span>Intercambié libros con un vecino</span>
+                                <span className="history-time">2:30 PM</span>
+                            </div>
+                            <span className="history-xp">+45 XP</span>
+                        </div>
+                        <div className="history-item">
+                            <div className="history-icon reparar">🔧</div>
+                            <div className="history-info">
+                                <span>Reparé la cadena de mi bicicleta</span>
+                                <span className="history-time">11:00 AM</span>
+                            </div>
+                            <span className="history-xp">+50 XP</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Estadísticas del Mes */}
+            <div className="stats-grid" id="actions-stats">
+                <div className="card stat-card">
+                    <div className="stat-icon reutilizar-bg">♻️</div>
+                    <div className="stat-info">
+                        <span className="stat-number">24</span>
+                        <span className="stat-label">Reutilizaciones</span>
+                    </div>
+                </div>
+                <div className="card stat-card">
+                    <div className="stat-icon reducir-bg">📉</div>
+                    <div className="stat-info">
+                        <span className="stat-number">18</span>
+                        <span className="stat-label">Reducciones</span>
+                    </div>
+                </div>
+                <div className="card stat-card">
+                    <div className="stat-icon reciclar-bg">🗑️</div>
+                    <div className="stat-info">
+                        <span className="stat-number">31</span>
+                        <span className="stat-label">Reciclajes</span>
+                    </div>
+                </div>
+                <div className="card stat-card">
+                    <div className="stat-icon reparar-bg">🔧</div>
+                    <div className="stat-info">
+                        <span className="stat-number">8</span>
+                        <span className="stat-label">Reparaciones</span>
+                    </div>
+                </div>
+                <div className="card stat-card">
+                    <div className="stat-icon intercambiar-bg">🔄</div>
+                    <div className="stat-info">
+                        <span className="stat-number">12</span>
+                        <span className="stat-label">Intercambios</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export default Acciones;
