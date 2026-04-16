@@ -1,11 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const Ayuda = () => {
     const [openFaq, setOpenFaq] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const faqs = [
+        {
+            question: '¿Cómo se calculan los puntos de impacto?',
+            answer: 'Los puntos se calculan según el tipo de acción que realizas. Cada categoría (reutilizar, reducir, reciclar, reparar, intercambiar) tiene un valor base que puede variar según la frecuencia e impacto de la acción. Acciones más significativas otorgan más puntos XP.'
+        },
+        {
+            question: '¿Cómo avanzo de nivel?',
+            answer: 'Cada nivel requiere acumular una cantidad de XP. A medida que subes de nivel, necesitas más XP para avanzar. Completar tareas diarias, retos semanales y participar en la comunidad te ayuda a ganar XP más rápido.'
+        },
+        {
+            question: '¿Puedo crear mi propio reto grupal?',
+            answer: '¡Sí! A partir del Nivel 15 puedes proponer retos grupales para la comunidad. Ve a Comunidad → Retos Grupales → Crear Reto para empezar.'
+        },
+        {
+            question: '¿Mis datos son privados?',
+            answer: 'Tus datos personales están protegidos. Puedes controlar qué información es visible para otros usuarios desde Opciones → Privacidad. También puedes exportar o eliminar tus datos en cualquier momento.'
+        }
+    ];
+
+    // Animate cards on scroll
+    useEffect(() => {
+        const cards = document.querySelectorAll('.card');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, i) => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationDelay = `${i * 0.05}s`;
+                    entry.target.classList.add('animate-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        cards.forEach(card => observer.observe(card));
+        return () => observer.disconnect();
+    }, []);
 
     const toggleFaq = (index) => {
         setOpenFaq(openFaq === index ? null : index);
     };
+
+    const filteredFaqs = faqs.filter(faq => 
+        faq.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        faq.answer.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     return (
         <div id="page-ayuda" className="page active-page">
@@ -21,7 +63,13 @@ const Ayuda = () => {
                 <h3>¿En qué podemos ayudarte?</h3>
                 <div className="help-search-input">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-                    <input type="text" placeholder="Buscar en la guía de ayuda..." id="help-search-field" />
+                    <input 
+                        type="text" 
+                        placeholder="Buscar en la guía de ayuda..." 
+                        id="help-search-field" 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                 </div>
             </div>
 
@@ -63,42 +111,23 @@ const Ayuda = () => {
             <div className="card" id="card-faq">
                 <h3>Preguntas Frecuentes</h3>
                 <div className="faq-list" id="faq-list">
-                    <div className={`faq-item ${openFaq === 0 ? 'open' : ''}`} onClick={() => toggleFaq(0)}>
-                        <div className="faq-question">
-                            <span>¿Cómo se calculan los puntos de impacto?</span>
-                            <svg className="faq-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+                    {filteredFaqs.length > 0 ? (
+                        filteredFaqs.map((faq, index) => (
+                            <div key={index} className={`faq-item ${openFaq === index ? 'open' : ''}`} onClick={() => toggleFaq(index)}>
+                                <div className="faq-question">
+                                    <span>{faq.question}</span>
+                                    <svg className="faq-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
+                                </div>
+                                <div className="faq-answer">
+                                    <p>{faq.answer}</p>
+                                </div>
+                            </div>
+                        ))
+                    ) : (
+                        <div className="no-results" style={{ padding: '20px', textAlign: 'center', opacity: 0.7 }}>
+                            No se encontraron resultados para "{searchTerm}"
                         </div>
-                        <div className="faq-answer">
-                            <p>Los puntos se calculan según el tipo de acción que realizas. Cada categoría (reutilizar, reducir, reciclar, reparar, intercambiar) tiene un valor base que puede variar según la frecuencia e impacto de la acción. Acciones más significativas otorgan más puntos XP.</p>
-                        </div>
-                    </div>
-                    <div className={`faq-item ${openFaq === 1 ? 'open' : ''}`} onClick={() => toggleFaq(1)}>
-                        <div className="faq-question">
-                            <span>¿Cómo avanzo de nivel?</span>
-                            <svg className="faq-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
-                        </div>
-                        <div className="faq-answer">
-                            <p>Cada nivel requiere acumular una cantidad de XP. A medida que subes de nivel, necesitas más XP para avanzar. Completar tareas diarias, retos semanales y participar en la comunidad te ayuda a ganar XP más rápido.</p>
-                        </div>
-                    </div>
-                    <div className={`faq-item ${openFaq === 2 ? 'open' : ''}`} onClick={() => toggleFaq(2)}>
-                        <div className="faq-question">
-                            <span>¿Puedo crear mi propio reto grupal?</span>
-                            <svg className="faq-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
-                        </div>
-                        <div className="faq-answer">
-                            <p>¡Sí! A partir del Nivel 15 puedes proponer retos grupales para la comunidad. Ve a Comunidad → Retos Grupales → Crear Reto para empezar.</p>
-                        </div>
-                    </div>
-                    <div className={`faq-item ${openFaq === 3 ? 'open' : ''}`} onClick={() => toggleFaq(3)}>
-                        <div className="faq-question">
-                            <span>¿Mis datos son privados?</span>
-                            <svg className="faq-arrow" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 12 15 18 9"/></svg>
-                        </div>
-                        <div className="faq-answer">
-                            <p>Tus datos personales están protegidos. Puedes controlar qué información es visible para otros usuarios desde Opciones → Privacidad. También puedes exportar o eliminar tus datos en cualquier momento.</p>
-                        </div>
-                    </div>
+                    )}
                 </div>
             </div>
 

@@ -1,6 +1,42 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-const Opciones = ({ toggleDarkMode }) => {
+const Opciones = ({ toggleDarkMode, updateProfile, onLogout, user }) => {
+    const [name, setName] = useState(user?.name || 'Mariana');
+    const [lastName, setLastName] = useState(user?.lastName || 'Rodríguez');
+    const [email, setEmail] = useState(user?.email || 'mariana@email.com');
+
+    // Animate cards on scroll
+    useEffect(() => {
+        const cards = document.querySelectorAll('.card');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, i) => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationDelay = `${i * 0.05}s`;
+                    entry.target.classList.add('animate-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        cards.forEach(card => observer.observe(card));
+        return () => observer.disconnect();
+    }, []);
+
+    const handleSaveProfile = () => {
+        if (updateProfile) {
+            updateProfile(name, lastName, email);
+        }
+    };
+
+    const handleDeleteAccount = () => {
+        if (window.confirm('¿Estás seguro de que quieres eliminar tu cuenta? Esta acción no se puede deshacer.')) {
+            if (window.showToast) window.showToast('Cuenta eliminada. Lamentamos verte ir 😢', 'error');
+            setTimeout(() => {
+                if (onLogout) onLogout();
+            }, 2000);
+        }
+    };
+
     return (
         <div id="page-opciones" className="page active-page">
             <div className="page-header">
@@ -17,24 +53,24 @@ const Opciones = ({ toggleDarkMode }) => {
                     <div className="settings-profile-header">
                         <div className="settings-avatar">
                             <div className="settings-avatar-img" id="settings-avatar-img">
-                                <span>M</span>
+                                <span>{name.charAt(0).toUpperCase()}</span>
                             </div>
-                            <button className="btn btn-sm btn-outline" id="btn-change-avatar">Cambiar foto</button>
+                            <button className="btn btn-sm btn-outline" id="btn-change-avatar" onClick={() => window.showToast('Funcionalidad de cambiar foto próximamente ✨', 'info')}>Cambiar foto</button>
                         </div>
                         <div className="settings-form">
                             <div className="form-group">
                                 <label htmlFor="settings-name">Nombre</label>
-                                <input type="text" id="settings-name" defaultValue="Mariana" />
+                                <input type="text" id="settings-name" value={name} onChange={(e) => setName(e.target.value)} />
                             </div>
                             <div className="form-group">
                                 <label htmlFor="settings-lastname">Apellido</label>
-                                <input type="text" id="settings-lastname" defaultValue="Rodríguez" />
+                                <input type="text" id="settings-lastname" value={lastName} onChange={(e) => setLastName(e.target.value)} />
                             </div>
                             <div className="form-group">
                                 <label htmlFor="settings-email">Correo</label>
-                                <input type="email" id="settings-email" defaultValue="mariana@email.com" />
+                                <input type="email" id="settings-email" value={email} onChange={(e) => setEmail(e.target.value)} />
                             </div>
-                            <button className="btn btn-primary btn-sm" id="btn-save-profile">Guardar cambios</button>
+                            <button className="btn btn-primary btn-sm" id="btn-save-profile" onClick={handleSaveProfile}>Guardar cambios</button>
                         </div>
                     </div>
                 </div>
@@ -142,9 +178,9 @@ const Opciones = ({ toggleDarkMode }) => {
                 <div className="card settings-card" id="settings-account">
                     <h3>⚙️ Cuenta</h3>
                     <div className="settings-options">
-                        <button className="btn btn-outline btn-full" id="btn-change-password">Cambiar contraseña</button>
-                        <button className="btn btn-outline btn-full" id="btn-export-data">Exportar mis datos</button>
-                        <button className="btn btn-danger btn-full" id="btn-delete-account">Eliminar cuenta</button>
+                        <button className="btn btn-outline btn-full" id="btn-change-password" onClick={() => window.showToast && window.showToast('Se envió un enlace a tu correo para cambiar tu contraseña', 'success')}>Cambiar contraseña</button>
+                        <button className="btn btn-outline btn-full" id="btn-export-data" onClick={() => window.showToast && window.showToast('Datos exportados. Revisa tu correo 📧', 'success')}>Exportar mis datos</button>
+                        <button className="btn btn-danger btn-full" id="btn-delete-account" onClick={handleDeleteAccount}>Eliminar cuenta</button>
                     </div>
                 </div>
             </div>

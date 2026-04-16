@@ -1,24 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-const Acciones = ({ openActionModal }) => {
+const Acciones = ({ openActionModal, tasks, completedTaskIds, toggleTaskGlobal }) => {
     const [filter, setFilter] = useState('all');
 
-    const tasks = [
-        { id: 1, name: 'Llevar bolsa reutilizable al supermercado', category: 'reutilizar', xp: 50, categoryIcon: '♻️', categoryName: 'Reutilizar', initialCompleted: true },
-        { id: 2, name: 'Reducir tiempo de ducha a 5 minutos', category: 'reducir', xp: 30, categoryIcon: '📉', categoryName: 'Reducir', initialCompleted: true },
-        { id: 3, name: 'Separar residuos orgánicos e inorgánicos', category: 'reciclar', xp: 40, categoryIcon: '🗑️', categoryName: 'Reciclar', initialCompleted: false },
-        { id: 4, name: 'Reparar prenda de ropa en lugar de comprar nueva', category: 'reparar', xp: 60, categoryIcon: '🔧', categoryName: 'Reparar', initialCompleted: false },
-    ];
+    // Animate cards on scroll
+    useEffect(() => {
+        const cards = document.querySelectorAll('.card');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry, i) => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animationDelay = `${i * 0.05}s`;
+                    entry.target.classList.add('animate-in');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
 
-    const [completedTasks, setCompletedTasks] = useState(
-        tasks.filter(t => t.initialCompleted).map(t => t.id)
-    );
-
-    const toggleTask = (id) => {
-        setCompletedTasks(prev => 
-            prev.includes(id) ? prev.filter(taskId => taskId !== id) : [...prev, id]
-        );
-    };
+        cards.forEach(card => observer.observe(card));
+        return () => observer.disconnect();
+    }, []);
 
     const filteredTasks = filter === 'all' ? tasks : tasks.filter(t => t.category === filter);
 
@@ -49,13 +49,13 @@ const Acciones = ({ openActionModal }) => {
             <div className="card" id="card-daily-tasks-detail">
                 <div className="card-header-flex">
                     <h3>Tareas de Hoy</h3>
-                    <span className="tasks-badge">{completedTasks.length}/{tasks.length} completadas</span>
+                    <span className="tasks-badge">{completedTaskIds.length}/{tasks.length} completadas</span>
                 </div>
                 <div className="task-list" id="task-list">
                     {filteredTasks.map(task => {
-                        const isCompleted = completedTasks.includes(task.id);
+                        const isCompleted = completedTaskIds.includes(task.id);
                         return (
-                            <div key={task.id} className={`task-item ${isCompleted ? 'completed' : ''}`} onClick={() => toggleTask(task.id)}>
+                            <div key={task.id} className={`task-item ${isCompleted ? 'completed' : ''}`} onClick={() => toggleTaskGlobal(task.id, task.xp)}>
                                 <div className={`task-check ${isCompleted ? 'checked' : ''}`}>
                                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                                 </div>

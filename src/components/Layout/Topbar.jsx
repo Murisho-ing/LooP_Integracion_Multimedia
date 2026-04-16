@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Topbar = ({ toggleSidebar }) => {
+const Topbar = ({ toggleSidebar, user }) => {
     return (
         <header className="topbar" id="topbar">
             <button className="menu-toggle" id="menu-toggle" onClick={toggleSidebar}>
@@ -17,7 +17,7 @@ const Topbar = ({ toggleSidebar }) => {
                 </button>
                 <div className="topbar-user" id="topbar-user">
                     <div className="user-avatar" id="user-avatar">
-                        <span>M</span>
+                        <span>{user?.name?.charAt(0).toUpperCase() || 'M'}</span>
                     </div>
                 </div>
             </div>

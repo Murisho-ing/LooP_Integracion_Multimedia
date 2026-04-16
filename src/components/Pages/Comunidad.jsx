@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 
 const Comunidad = () => {
     const [activeTab, setActiveTab] = useState('ranking');
+    const [activePeriod, setActivePeriod] = useState('Semanal');
 
     return (
         <div id="page-comunidad" className="page active-page">
@@ -26,9 +27,9 @@ const Comunidad = () => {
                         <div className="ranking-header">
                             <h3>Ranking Semanal</h3>
                             <div className="ranking-period">
-                                <button className="period-btn active">Semanal</button>
-                                <button className="period-btn">Mensual</button>
-                                <button className="period-btn">Total</button>
+                                <button className={`period-btn ${activePeriod === 'Semanal' ? 'active' : ''}`} onClick={() => setActivePeriod('Semanal')}>Semanal</button>
+                                <button className={`period-btn ${activePeriod === 'Mensual' ? 'active' : ''}`} onClick={() => setActivePeriod('Mensual')}>Mensual</button>
+                                <button className={`period-btn ${activePeriod === 'Total' ? 'active' : ''}`} onClick={() => setActivePeriod('Total')}>Total</button>
                             </div>
                         </div>
                         <div className="ranking-podium" id="ranking-podium">

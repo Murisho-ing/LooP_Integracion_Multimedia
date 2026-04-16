@@ -12,7 +12,7 @@ const Register = ({ changePage, onRegister }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (password !== confirmPassword) {
-            alert('Las contraseñas no coinciden');
+            if (window.showToast) window.showToast('Las contraseñas no coinciden', 'error');
             return;
         }
         if (name && email) {

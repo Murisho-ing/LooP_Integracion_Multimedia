@@ -1,21 +1,34 @@
 import React, { useState } from 'react';
 
-const ActionModal = ({ isVisible, closeModal }) => {
+const ActionModal = ({ isVisible, closeModal, addXp }) => {
     const [actionType, setActionType] = useState('');
     const [description, setDescription] = useState('');
+    const [impact, setImpact] = useState('medium');
 
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!actionType) {
-            alert('Selecciona un tipo de acción');
+            if(window.showToast) window.showToast('Selecciona un tipo de acción', 'error');
             return;
         }
         if (!description.trim()) {
-            alert('Escribe una descripción de tu acción');
+            if(window.showToast) window.showToast('Escribe una descripción de tu acción', 'error');
             return;
         }
+        
+        let xpGained = 40;
+        if (impact === 'low') xpGained = 20;
+        if (impact === 'high') xpGained = 60;
+
+        if (addXp) addXp(xpGained);
+
         closeModal();
-        alert('¡Acción registrada con éxito! +40 XP 🌿');
+        if(window.showToast) window.showToast(`¡Acción registrada con éxito! +${xpGained} XP 🌿`, 'success');
+        
+        // Reset form
+        setActionType('');
+        setDescription('');
+        setImpact('medium');
     };
 
     if (!isVisible) return null;
@@ -59,7 +72,7 @@ const ActionModal = ({ isVisible, closeModal }) => {
                         </div>
                         <div className="form-group">
                             <label htmlFor="action-impact">Nivel de impacto</label>
-                            <select id="action-impact" className="setting-select" defaultValue="medium">
+                            <select id="action-impact" className="setting-select" value={impact} onChange={(e) => setImpact(e.target.value)}>
                                 <option value="low">Bajo (+20 XP)</option>
                                 <option value="medium">Medio (+40 XP)</option>
                                 <option value="high">Alto (+60 XP)</option>
