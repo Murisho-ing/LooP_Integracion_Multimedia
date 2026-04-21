@@ -9,7 +9,7 @@ const Login = ({ changePage, onLogin }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (email && password) {
-            onLogin();
+            onLogin(email, password);
         }
     };
 

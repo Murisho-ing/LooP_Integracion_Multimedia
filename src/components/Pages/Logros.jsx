@@ -1,6 +1,26 @@
 import React from 'react';
 
-const Logros = () => {
+const Logros = ({ user, data }) => {
+    // Current user level and xp
+    const currentXp = user?.xp || 0;
+    const currentLevel = user?.level || 1;
+    // Real metrics from dashboard data
+    const impactSummary = data?.impactSummary || {};
+    const totalActions = Object.values(impactSummary).reduce((acc, cat) => acc + (cat.count || 0), 0);
+    const currentStreak = user?.streak || 0;
+
+    // Derived stats
+    let unlockedCount = 0;
+    if (currentLevel > 1) unlockedCount += Math.floor(currentLevel / 2); // 1 achievement every 2 levels
+    if (currentXp >= 1000) unlockedCount += 1;
+    if (currentStreak >= 5) unlockedCount += 1;
+    if (totalActions >= 1) unlockedCount += 1; // Primera semilla
+    if (totalActions >= 10) unlockedCount += 1; // Reciclador (aprox)
+    
+    unlockedCount = Math.min(unlockedCount, 20);
+    const totalLogrosVisible = 20;
+    const progressPercent = Math.round((unlockedCount / totalLogrosVisible) * 100);
+
     return (
         <div id="page-logros" className="page active-page">
             <div className="page-header">
@@ -17,27 +37,27 @@ const Logros = () => {
                         <svg width="100" height="100" viewBox="0 0 100 100">
                             <circle cx="50" cy="50" r="40" fill="none" stroke="#dde2dd" strokeWidth="8"/>
                             <circle cx="50" cy="50" r="40" fill="none" stroke="#216D28" strokeWidth="8" strokeLinecap="round"
-                                strokeDasharray="251.3" strokeDashoffset="75.4" transform="rotate(-90 50 50)"/>
+                                strokeDasharray="251.3" strokeDashoffset={251.3 * (1 - progressPercent/100)} transform="rotate(-90 50 50)"/>
                         </svg>
-                        <span className="summary-percent">70%</span>
+                        <span className="summary-percent">{progressPercent}%</span>
                     </div>
                     <div className="summary-info">
                         <h3>Progreso General</h3>
-                        <p>14 de 20 logros desbloqueados</p>
+                        <p>{unlockedCount} de {totalLogros} logros desbloqueados</p>
                     </div>
                 </div>
                 <div className="card achievement-summary-card">
                     <span className="summary-emoji">🔥</span>
                     <div className="summary-info">
                         <h3>Racha Actual</h3>
-                        <p>12 días consecutivos</p>
+                        <p>{currentStreak} {currentStreak === 1 ? 'día' : 'días'} consecutivos</p>
                     </div>
                 </div>
                 <div className="card achievement-summary-card">
                     <span className="summary-emoji">⭐</span>
                     <div className="summary-info">
                         <h3>Puntos Totales</h3>
-                        <p>4,850 XP acumulados</p>
+                        <p>{currentXp.toLocaleString()} XP acumulados</p>
                     </div>
                 </div>
             </div>
@@ -51,47 +71,35 @@ const Logros = () => {
                     </div>
                     <h4>Primera Semilla</h4>
                     <p>Completa tu primera acción sostenible</p>
-                    <span className="achievement-date">Desbloqueado: 2 Ene 2026</span>
+                    <span className="achievement-date">¡Ya desbloqueado!</span>
                 </div>
+                {currentLevel >= 5 && (
+                    <div className="card achievement-card unlocked">
+                        <div className="achievement-badge">
+                            <span className="badge-emoji">🌍</span>
+                        </div>
+                        <h4>Explorador Eco</h4>
+                        <p>Alcanza el Nivel 5</p>
+                        <span className="achievement-date">¡Desbloqueado!</span>
+                    </div>
+                )}
+                {currentXp >= 1000 && (
+                    <div className="card achievement-card unlocked">
+                        <div className="achievement-badge">
+                            <span className="badge-emoji">⭐</span>
+                        </div>
+                        <h4>Primeros 1000</h4>
+                        <p>Acumula tus primeros 1,000 XP</p>
+                        <span className="achievement-date">¡Desbloqueado!</span>
+                    </div>
+                )}
                 <div className="card achievement-card unlocked">
                     <div className="achievement-badge">
                         <span className="badge-emoji">♻️</span>
                     </div>
-                    <h4>Reciclador Novato</h4>
-                    <p>Recicla 10 materiales diferentes</p>
-                    <span className="achievement-date">Desbloqueado: 15 Ene 2026</span>
-                </div>
-                <div className="card achievement-card unlocked">
-                    <div className="achievement-badge">
-                        <span className="badge-emoji">🔥</span>
-                    </div>
-                    <h4>Racha de 7 Días</h4>
-                    <p>Mantén una racha de 7 días seguidos</p>
-                    <span className="achievement-date">Desbloqueado: 22 Ene 2026</span>
-                </div>
-                <div className="card achievement-card unlocked">
-                    <div className="achievement-badge">
-                        <span className="badge-emoji">🌍</span>
-                    </div>
-                    <h4>Ciudadano Eco</h4>
-                    <p>Alcanza el Nivel 10</p>
-                    <span className="achievement-date">Desbloqueado: 5 Feb 2026</span>
-                </div>
-                <div className="card achievement-card unlocked">
-                    <div className="achievement-badge">
-                        <span className="badge-emoji">🔧</span>
-                    </div>
-                    <h4>Reparador</h4>
-                    <p>Repara 5 objetos en lugar de desechar</p>
-                    <span className="achievement-date">Desbloqueado: 18 Feb 2026</span>
-                </div>
-                <div className="card achievement-card unlocked">
-                    <div className="achievement-badge">
-                        <span className="badge-emoji">🤝</span>
-                    </div>
-                    <h4>Intercambiador</h4>
-                    <p>Realiza 5 intercambios con otros usuarios</p>
-                    <span className="achievement-date">Desbloqueado: 1 Mar 2026</span>
+                    <h4>Reciclador</h4>
+                    <p>Llevas el reciclaje en la sangre</p>
+                    <span className="achievement-date">¡Desbloqueado!</span>
                 </div>
             </div>
 
@@ -105,8 +113,8 @@ const Logros = () => {
                     <h4>Maestro Circular</h4>
                     <p>Completa 100 acciones de cualquier tipo</p>
                     <div className="achievement-progress">
-                        <div className="achievement-bar"><div className="achievement-bar-fill" style={{ width: '73%' }}></div></div>
-                        <span>73/100</span>
+                        <div className="achievement-bar"><div className="achievement-bar-fill" style={{ width: `${Math.min((totalActions / 100) * 100, 100)}%` }}></div></div>
+                        <span>{totalActions}/100 acciones</span>
                     </div>
                 </div>
                 <div className="card achievement-card locked">
@@ -117,20 +125,8 @@ const Logros = () => {
                     <h4>Diamante Verde</h4>
                     <p>Alcanza el Nivel 30</p>
                     <div className="achievement-progress">
-                        <div className="achievement-bar"><div className="achievement-bar-fill" style={{ width: '80%' }}></div></div>
-                        <span>Nivel 24/30</span>
-                    </div>
-                </div>
-                <div className="card achievement-card locked">
-                    <div className="achievement-badge locked-badge">
-                        <span className="badge-emoji">🌟</span>
-                        <div className="lock-overlay">🔒</div>
-                    </div>
-                    <h4>Racha Legendaria</h4>
-                    <p>Mantén una racha de 30 días</p>
-                    <div className="achievement-progress">
-                        <div className="achievement-bar"><div className="achievement-bar-fill" style={{ width: '40%' }}></div></div>
-                        <span>12/30 días</span>
+                        <div className="achievement-bar"><div className="achievement-bar-fill" style={{ width: `${Math.min((currentLevel / 30) * 100, 100)}%` }}></div></div>
+                        <span>Nivel {currentLevel}/30</span>
                     </div>
                 </div>
                 <div className="card achievement-card locked">
@@ -141,8 +137,8 @@ const Logros = () => {
                     <h4>Guardián del Bosque</h4>
                     <p>Ahorra el equivalente a 1 árbol en materiales</p>
                     <div className="achievement-progress">
-                        <div className="achievement-bar"><div className="achievement-bar-fill" style={{ width: '55%' }}></div></div>
-                        <span>55%</span>
+                        <div className="achievement-bar"><div className="achievement-bar-fill" style={{ width: '20%' }}></div></div>
+                        <span>20%</span>
                     </div>
                 </div>
             </div>

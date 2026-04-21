@@ -20,10 +20,9 @@ const ActionModal = ({ isVisible, closeModal, addXp }) => {
         if (impact === 'low') xpGained = 20;
         if (impact === 'high') xpGained = 60;
 
-        if (addXp) addXp(xpGained);
+        if (addXp) addXp(xpGained, actionType, description);
 
         closeModal();
-        if(window.showToast) window.showToast(`¡Acción registrada con éxito! +${xpGained} XP 🌿`, 'success');
         
         // Reset form
         setActionType('');

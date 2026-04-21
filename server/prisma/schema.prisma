@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  password  String
+  name      String
+  lastName  String
+  level     Int      @default(1)
+  xp        Int      @default(0)
+  maxXp     Int      @default(1000)
+  streak    Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  actions          Action[]
+  completedTasks   UserTask[]
+  activeChallenges UserChallenge[]
+  posts            Post[]
+  comments         Comment[]
+  likes            Like[]
+}
+
+model Category {
+  id    Int      @id @default(autoincrement())
+  name  String   @unique // 'reutilizar', 'reciclar', etc.
+  label String
+  icon  String
+  tasks Task[]
+  actions Action[]
+}
+
+model Task {
+  id          Int      @id @default(autoincrement())
+  name        String
+  xp          Int
+  categoryId  Int
+  category    Category @relation(fields: [categoryId], references: [id])
+  userTasks   UserTask[]
+}
+
+model UserTask {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  taskId    Int
+  completed Boolean  @default(false)
+  date      DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id])
+  task      Task     @relation(fields: [taskId], references: [id])
+
+  @@unique([userId, taskId, date])
+}
+
+model Action {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  categoryId  Int
+  description String?
+  value       String?  // p.ej. "12 veces", "5 objetos"
+  xpEarned    Int
+  createdAt   DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+}
+
+model Challenge {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String
+  xpReward    Int
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  userChallenges UserChallenge[]
+}
+
+model UserChallenge {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  challengeId Int
+  isJoined    Boolean  @default(false)
+  isCompleted Boolean  @default(false)
+  progress    Int      @default(0)
+  startedAt   DateTime @default(now())
+
+  user      User      @relation(fields: [userId], references: [id])
+  challenge Challenge @relation(fields: [challengeId], references: [id])
+
+  @@unique([userId, challengeId])
+}
+
+model Post {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  content   String
+  createdAt DateTime  @default(now())
+  
+  user      User      @relation(fields: [userId], references: [id])
+  likes     Like[]
+  comments  Comment[]
+}
+
+model Comment {
+  id        Int       @id @default(autoincrement())
+  postId    Int
+  userId    Int
+  content   String
+  createdAt DateTime  @default(now())
+  
+  post      Post      @relation(fields: [postId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+}
+
+model Like {
+  id        Int      @id @default(autoincrement())
+  postId    Int
+  userId    Int
+  
+  post      Post     @relation(fields: [postId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([postId, userId])
+}

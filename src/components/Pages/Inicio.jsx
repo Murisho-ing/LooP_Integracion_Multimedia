@@ -8,10 +8,22 @@ const impactStats = [
     { label: 'Redujiste', number: '15 acciones', msg: 'Estás haciendo una gran diferencia' }
 ];
 
-const Inicio = ({ user, changePage, tasks, completedTaskIds }) => {
+const Inicio = ({ user, changePage, tasks, completedTaskIds, impactSummary, weeklyActivity, activeChallenge }) => {
     const [impactIndex, setImpactIndex] = useState(0);
-    const [challengeStarted, setChallengeStarted] = useState(false);
+    const [challengeStarted, setChallengeStarted] = useState(activeChallenge?.isJoined || false);
     const [displayXp, setDisplayXp] = useState(user.xp);
+
+    const impactStats = (impactSummary && Object.keys(impactSummary).length > 0) ? Object.entries(impactSummary).map(([key, val]) => ({
+        label: val.label,
+        number: `${val.count} acciones`,
+        msg: val.count > 0 ? 'Cada pequeña acción cuenta para un futuro mejor.' : '¡Empieza hoy mismo y marca la diferencia!'
+    })) : [
+        { label: 'Bienvenido', number: '0 acciones', msg: '¡Tu viaje sostenible comienza hoy!' }
+    ];
+
+    useEffect(() => {
+        if (activeChallenge) setChallengeStarted(activeChallenge.isJoined);
+    }, [activeChallenge]);
 
     // Animating the XP number
     useEffect(() => {
@@ -53,7 +65,7 @@ const Inicio = ({ user, changePage, tasks, completedTaskIds }) => {
         return () => observer.disconnect();
     }, []);
 
-    // Animating the ring when the component mounts
+    // Animating the ring
     useEffect(() => {
         const ring = document.querySelector('.progress-ring-fill');
         if (ring) {
@@ -62,9 +74,6 @@ const Inicio = ({ user, changePage, tasks, completedTaskIds }) => {
             const offset = circumference * (1 - progress);
 
             ring.style.strokeDasharray = circumference;
-            // Initially set it to 0 progress visually (max offset)
-            ring.style.strokeDashoffset = circumference;
-
             const timer = setTimeout(() => {
                 ring.style.transition = 'stroke-dashoffset 1.5s ease';
                 ring.style.strokeDashoffset = offset;
@@ -94,20 +103,25 @@ const Inicio = ({ user, changePage, tasks, completedTaskIds }) => {
 
     const handleStartChallenge = () => {
         if (!challengeStarted) {
-            if(window.showToast) window.showToast('¡Reto iniciado! Tienes 7 días para completarlo 💪', 'success');
+            if(window.showToast) window.showToast('¡Has aceptado el reto! 💪', 'success');
             setChallengeStarted(true);
+            // Here we would ideally call an API to join the challenge
         }
     };
 
-    const handleGuideChallenge = () => {
-        if(window.showToast) window.showToast('Guía del reto: Evita plásticos de un solo uso, usa bolsas reutilizables y botellas de agua recargables', 'info');
-    };
+    const currentStat = impactStats[impactIndex] || impactStats[0] || { label: '', number: '', msg: '' };
 
-    const currentStat = impactStats[impactIndex];
+    const totalTasksCount = tasks?.length || 0;
+    const completedTasksCount = completedTaskIds?.length || 0;
+    const tasksPercent = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
 
-    const totalTasksCount = tasks ? tasks.length : 4;
-    const completedTasksCount = completedTaskIds ? completedTaskIds.length : 2;
-    const tasksPercent = Math.round((completedTasksCount / totalTasksCount) * 100);
+    // Daily mapping for chart
+    const daysWeek = ['LU', 'MA', 'MI', 'JU', 'VI', 'SA', 'HOY'];
+    const chartData = weeklyActivity?.map((day, i) => ({
+        label: i === weeklyActivity.length - 1 ? 'HOY' : daysWeek[i] || '?',
+        val: day.xp,
+        percent: Math.min(Math.round((day.xp / 200) * 100), 100) // 200 XP scaled as 100%
+    })) || Array(7).fill({ label: '', val: 0, percent: 10 });
 
     return (
         <div id="page-inicio" className="page active-page">
@@ -119,7 +133,6 @@ const Inicio = ({ user, changePage, tasks, completedTaskIds }) => {
             </div>
 
             <div className="dashboard-grid">
-                {/* Progreso General */}
                 <div className="card card-progress" id="card-progress">
                     <div className="progress-info">
                         <p className="progress-label">Nivel de impacto sostenible</p>
@@ -132,7 +145,7 @@ const Inicio = ({ user, changePage, tasks, completedTaskIds }) => {
                         <svg className="progress-ring" width="220" height="220" viewBox="0 0 220 220">
                             <circle className="progress-ring-bg" cx="110" cy="110" r="95" fill="none" stroke="#dde2dd" strokeWidth="16"/>
                             <circle className="progress-ring-fill" cx="110" cy="110" r="95" fill="none" stroke="#216D28" strokeWidth="16" strokeLinecap="round"
-                                strokeDasharray="596.9" strokeDashoffset="89.5" transform="rotate(-90 110 110)"/>
+                                strokeDasharray="596.9" strokeDashoffset="596.9" transform="rotate(-90 110 110)"/>
                         </svg>
                         <div className="progress-ring-text">
                             <span className="ring-level">Nivel {user.level}</span>
@@ -140,11 +153,12 @@ const Inicio = ({ user, changePage, tasks, completedTaskIds }) => {
                     </div>
                 </div>
 
-                {/* Tareas Diarias */}
                 <div className="card card-tasks" id="card-tasks">
                     <div className="card-header-sm">
                         <h3>Tareas Diarias</h3>
-                        <p className="tasks-hint">Termina {totalTasksCount - completedTasksCount} más para completar una meta</p>
+                        <p className="tasks-hint">
+                            {completedTasksCount === totalTasksCount ? '¡Felicidades! Has completado todas las tareas.' : `Termina ${totalTasksCount - completedTasksCount} más para completar una meta`}
+                        </p>
                     </div>
                     <div className="tasks-progress">
                         <div className="tasks-percent">{tasksPercent}%</div>
@@ -156,70 +170,26 @@ const Inicio = ({ user, changePage, tasks, completedTaskIds }) => {
                     <button className="btn btn-outline btn-full" id="btn-ver-tareas" onClick={() => changePage('page-acciones')}>Ver Tareas Diarias</button>
                 </div>
 
-                {/* Gráfica Semanal */}
                 <div className="card card-chart" id="card-weekly-chart">
-                    <h3>Materiales recuperados semanalmente</h3>
+                    <h3>Impacto de actividad semanal (XP)</h3>
                     <div className="chart-bars">
-                        <div className="chart-bar-group">
-                            <div className="bar-wrapper">
-                                <div className="bar" style={{ height: '55%' }} data-value="5"></div>
-                                <div className="bar bar-light" style={{ height: '35%' }} data-value="3"></div>
+                        {chartData.map((d, i) => (
+                            <div key={i} className={`chart-bar-group ${d.label === 'HOY' ? 'highlight' : ''}`}>
+                                <div className="bar-wrapper">
+                                    <div className={`bar ${d.label === 'HOY' ? 'bar-accent' : ''}`} style={{ height: `${d.percent}%` }} data-value={d.val}></div>
+                                </div>
+                                <span className="bar-label">{d.label}</span>
                             </div>
-                            <span className="bar-label">LU</span>
-                        </div>
-                        <div className="chart-bar-group">
-                            <div className="bar-wrapper">
-                                <div className="bar" style={{ height: '70%' }} data-value="7"></div>
-                                <div className="bar bar-light" style={{ height: '45%' }} data-value="4"></div>
-                            </div>
-                            <span className="bar-label">MA</span>
-                        </div>
-                        <div className="chart-bar-group">
-                            <div className="bar-wrapper">
-                                <div className="bar" style={{ height: '85%' }} data-value="9"></div>
-                                <div className="bar bar-light" style={{ height: '60%' }} data-value="6"></div>
-                            </div>
-                            <span className="bar-label">MI</span>
-                        </div>
-                        <div className="chart-bar-group">
-                            <div className="bar-wrapper">
-                                <div className="bar" style={{ height: '50%' }} data-value="5"></div>
-                                <div className="bar bar-light" style={{ height: '30%' }} data-value="3"></div>
-                            </div>
-                            <span className="bar-label">JU</span>
-                        </div>
-                        <div className="chart-bar-group">
-                            <div className="bar-wrapper">
-                                <div className="bar" style={{ height: '65%' }} data-value="6"></div>
-                                <div className="bar bar-light" style={{ height: '40%' }} data-value="4"></div>
-                            </div>
-                            <span className="bar-label">VI</span>
-                        </div>
-                        <div className="chart-bar-group">
-                            <div className="bar-wrapper">
-                                <div className="bar" style={{ height: '45%' }} data-value="4"></div>
-                                <div className="bar bar-light" style={{ height: '25%' }} data-value="2"></div>
-                            </div>
-                            <span className="bar-label">SA</span>
-                        </div>
-                        <div className="chart-bar-group highlight">
-                            <div className="bar-wrapper">
-                                <div className="bar" style={{ height: '90%' }} data-value="9"></div>
-                                <div className="bar bar-accent" style={{ height: '70%' }} data-value="7"></div>
-                            </div>
-                            <span className="bar-label">HOY</span>
-                        </div>
+                        ))}
                     </div>
                 </div>
 
-                {/* Curiosidades */}
                 <div className="card card-curiosities" id="card-curiosities">
                     <span className="card-tag">Curiosidades</span>
                     <h3>Conoce nuevas formas de aplicar la economía circular</h3>
                     <a href="#" className="link-arrow" onClick={(e) => { e.preventDefault(); changePage('page-ayuda'); }}>Conoce más →</a>
                 </div>
 
-                {/* Impacto en Detalle */}
                 <div className="card card-impact card-with-bg" id="card-impact">
                     <div className="card-background">
                         <img src={leaves} alt="" className="card-bg-img" />
@@ -233,36 +203,35 @@ const Inicio = ({ user, changePage, tasks, completedTaskIds }) => {
                         </div>
                         <p className="impact-msg">{currentStat.msg}</p>
                         <div className="impact-nav">
-                            <button className="impact-nav-btn" id="impact-prev" onClick={() => changeImpactStat(-1)}>
+                            <button className="impact-nav-btn" onClick={() => changeImpactStat(-1)}>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
                             </button>
-                            <button className="impact-nav-btn" id="impact-next" onClick={() => changeImpactStat(1)}>
+                            <button className="impact-nav-btn" onClick={() => changeImpactStat(1)}>
                                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Reto Semanal */}
-                <div className="card card-challenge" id="card-challenge">
-                    <div className="challenge-header">
-                        <h3>Reto Semanal: Reduce el Consumo de Plástico</h3>
-                        <span className="xp-badge">+500 XP</span>
+                {activeChallenge && (
+                    <div className="card card-challenge" id="card-challenge">
+                        <div className="challenge-header">
+                            <h3>Reto: {activeChallenge.title}</h3>
+                            <span className="xp-badge">+{activeChallenge.xpReward} XP</span>
+                        </div>
+                        <p className="challenge-desc">{activeChallenge.description}</p>
+                        <div className="challenge-actions">
+                            <button 
+                                className="btn btn-primary" 
+                                onClick={handleStartChallenge} 
+                                disabled={challengeStarted}
+                                style={{ opacity: challengeStarted ? 0.7 : 1 }}
+                            >
+                                {challengeStarted ? 'Reto en progreso' : 'Aceptar Reto'}
+                            </button>
+                        </div>
                     </div>
-                    <p className="challenge-desc">Evita usar bolsas, botellas o cualquier objeto plástico que no necesites en tu día a día.</p>
-                    <div className="challenge-actions">
-                        <button 
-                            className="btn btn-primary" 
-                            id="btn-iniciar-reto" 
-                            onClick={handleStartChallenge} 
-                            disabled={challengeStarted}
-                            style={{ opacity: challengeStarted ? 0.7 : 1 }}
-                        >
-                            {challengeStarted ? 'Reto en progreso' : 'Iniciar Reto'}
-                        </button>
-                        <button className="btn btn-outline" id="btn-guia-reto" onClick={handleGuideChallenge}>Ver Guía del Reto</button>
-                    </div>
-                </div>
+                )}
             </div>
         </div>
     );

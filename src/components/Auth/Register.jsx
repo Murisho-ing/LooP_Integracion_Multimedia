@@ -16,8 +16,8 @@ const Register = ({ changePage, onRegister }) => {
             if (window.showToast) window.showToast('Las contraseñas no coinciden', 'error');
             return;
         }
-        if (name && email) {
-            onRegister(name);
+        if (name && lastName && email && password) {
+            onRegister(name, lastName, email, password);
         }
     };
 

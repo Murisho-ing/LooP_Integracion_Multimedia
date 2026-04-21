@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from 'react';
 
 const Opciones = ({ toggleDarkMode, updateProfile, onLogout, user }) => {
-    const [name, setName] = useState(user?.name || 'Mariana');
-    const [lastName, setLastName] = useState(user?.lastName || 'Rodríguez');
-    const [email, setEmail] = useState(user?.email || 'mariana@email.com');
+    const [name, setName] = useState(user?.name || '');
+    const [lastName, setLastName] = useState(user?.lastName || '');
+    const [email, setEmail] = useState(user?.email || '');
 
-    // Animate cards on scroll
+    useEffect(() => {
+        if (user) {
+            setName(user.name);
+            setLastName(user.lastName);
+            setEmail(user.email);
+        }
+    }, [user]);
     useEffect(() => {
         const cards = document.querySelectorAll('.card');
         const observer = new IntersectionObserver((entries) => {
@@ -23,8 +29,33 @@ const Opciones = ({ toggleDarkMode, updateProfile, onLogout, user }) => {
     }, []);
 
     const handleSaveProfile = () => {
+        // Si el usuario aún no ha cargado, no hacemos nada
+        if (!user || user.name === 'Cargando...') return;
+
+        // Limpiamos los inputs de espacios extra
+        const trimmedName = name.trim();
+        const trimmedLastName = lastName.trim();
+        const trimmedEmail = email.trim();
+
+        // Validar si la información es EXACTAMENTE la misma que ya tenemos
+        const isSameInfo = 
+            trimmedName === (user?.name || '').trim() &&
+            trimmedLastName === (user?.lastName || '').trim() &&
+            trimmedEmail === (user?.email || '').trim();
+
+        if (isSameInfo) {
+            if (window.showToast) {
+                window.showToast('La información es la misma que la de tu perfil actual 📝', 'info');
+            }
+            return;
+        }
+
+        // Si hay cambios, procedemos
         if (updateProfile) {
-            updateProfile(name, lastName, email);
+            updateProfile(trimmedName, trimmedLastName, trimmedEmail);
+            if (window.showToast) {
+                window.showToast('¡Perfil actualizado con éxito! 🌿', 'success');
+            }
         }
     };
 

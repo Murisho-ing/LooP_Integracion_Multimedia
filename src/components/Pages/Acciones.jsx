@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const Acciones = ({ openActionModal, tasks, completedTaskIds, toggleTaskGlobal }) => {
+const Acciones = ({ openActionModal, tasks = [], completedTaskIds = [], toggleTaskGlobal, impactSummary }) => {
     const [filter, setFilter] = useState('all');
 
     // Animate cards on scroll
@@ -125,41 +125,19 @@ const Acciones = ({ openActionModal, tasks, completedTaskIds, toggleTaskGlobal }
 
             {/* Estadísticas del Mes */}
             <div className="stats-grid" id="actions-stats">
-                <div className="card stat-card">
-                    <div className="stat-icon reutilizar-bg">♻️</div>
-                    <div className="stat-info">
-                        <span className="stat-number">24</span>
-                        <span className="stat-label">Reutilizaciones</span>
+                {impactSummary ? Object.entries(impactSummary).map(([key, val]) => (
+                    <div key={key} className="card stat-card">
+                        <div className={`stat-icon ${key}-bg`}>
+                            {key === 'reutilizar' ? '♻️' : key === 'reducir' ? '📉' : key === 'reciclar' ? '🗑️' : key === 'reparar' ? '🔧' : '🔄'}
+                        </div>
+                        <div className="stat-info">
+                            <span className="stat-number">{val.count}</span>
+                            <span className="stat-label">{val.label}</span>
+                        </div>
                     </div>
-                </div>
-                <div className="card stat-card">
-                    <div className="stat-icon reducir-bg">📉</div>
-                    <div className="stat-info">
-                        <span className="stat-number">18</span>
-                        <span className="stat-label">Reducciones</span>
-                    </div>
-                </div>
-                <div className="card stat-card">
-                    <div className="stat-icon reciclar-bg">🗑️</div>
-                    <div className="stat-info">
-                        <span className="stat-number">31</span>
-                        <span className="stat-label">Reciclajes</span>
-                    </div>
-                </div>
-                <div className="card stat-card">
-                    <div className="stat-icon reparar-bg">🔧</div>
-                    <div className="stat-info">
-                        <span className="stat-number">8</span>
-                        <span className="stat-label">Reparaciones</span>
-                    </div>
-                </div>
-                <div className="card stat-card">
-                    <div className="stat-icon intercambiar-bg">🔄</div>
-                    <div className="stat-info">
-                        <span className="stat-number">12</span>
-                        <span className="stat-label">Intercambios</span>
-                    </div>
-                </div>
+                )) : (
+                    <p>Cargando estadísticas...</p>
+                )}
             </div>
         </div>
     );

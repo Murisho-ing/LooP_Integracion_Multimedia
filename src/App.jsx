@@ -18,81 +18,64 @@ import Ayuda from './components/Pages/Ayuda';
 // Modals
 import ActionModal from './components/Modals/ActionModal';
 
+// Services & Hooks
+import api from './services/api';
+import { useDashboard } from './hooks/useDashboard';
+import { useActions } from './hooks/useActions';
+
 function App() {
   const [currentPage, setCurrentPage] = useState('page-login');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isActionModalOpen, setIsActionModalOpen] = useState(false);
-  
-  const [user, setUser] = useState({
-    name: 'Mariana',
-    lastName: 'Rodríguez',
-    email: 'mariana@email.com',
-    level: 24,
-    xp: 850,
-    maxXp: 1000
-  });
-
   const [darkMode, setDarkMode] = useState(false);
-
-  const [tasks] = useState([
-    { id: 1, name: 'Llevar bolsa reutilizable al supermercado', category: 'reutilizar', xp: 50, categoryIcon: '♻️', categoryName: 'Reutilizar', initialCompleted: true },
-    { id: 2, name: 'Reducir tiempo de ducha a 5 minutos', category: 'reducir', xp: 30, categoryIcon: '📉', categoryName: 'Reducir', initialCompleted: true },
-    { id: 3, name: 'Separar residuos orgánicos e inorgánicos', category: 'reciclar', xp: 40, categoryIcon: '🗑️', categoryName: 'Reciclar', initialCompleted: false },
-    { id: 4, name: 'Reparar prenda de ropa en lugar de comprar nueva', category: 'reparar', xp: 60, categoryIcon: '🔧', categoryName: 'Reparar', initialCompleted: false },
-  ]);
-  const [completedTaskIds, setCompletedTaskIds] = useState(tasks.filter(t => t.initialCompleted).map(t => t.id));
-
-  const addXp = (amount) => {
-    setUser(prev => {
-      let newXp = prev.xp + amount;
-      let newLevel = prev.level;
-      let newMaxXp = prev.maxXp;
-      while (newXp >= newMaxXp) {
-        newLevel += 1;
-        newXp -= newMaxXp;
-        newMaxXp = Math.floor(newMaxXp * 1.2); 
-      }
-      return { ...prev, xp: newXp, level: newLevel, maxXp: newMaxXp };
-    });
-  };
-
-  const toggleTaskGlobal = (taskId, xp) => {
-    setCompletedTaskIds(prev => {
-      const isRemoving = prev.includes(taskId);
-      const nextCompleted = isRemoving ? prev.filter(id => id !== taskId) : [...prev, taskId];
-      
-      if (!isRemoving) {
-        addXp(xp);
-      } else {
-        // En un juego o sistema simple no se quitaria el xp, pero si quieres deshacerlo seria addXp(-xp)
-      }
-      
-      if (!isRemoving && nextCompleted.length === tasks.length) {
-        if(window.showToast) window.showToast('🎉 ¡Completaste todas tus tareas diarias! +100 XP bonus', 'success');
-        addXp(100);
-      }
-      return nextCompleted;
-    });
-  };
-
   const [toasts, setToasts] = useState([]);
 
+  // Backend Data
+  const { data, setData, loading, error: dashboardError, refetch: refetchDashboard } = useDashboard(isLoggedIn);
+  const { toggleTask, logManualAction } = useActions(refetchDashboard);
+
+  const user = data?.user || {
+    name: 'Cargando...',
+    level: 1,
+    xp: 0,
+    maxXp: 1000
+  };
+
+  const tasks = data?.tasks || [];
+  const completedTaskIds = data?.completedTaskIds || [];
+
+  const toggleTaskGlobal = async (taskId, xp) => {
+    try {
+      await toggleTask(taskId, xp);
+      if (window.showToast) window.showToast('¡Tarea actualizada! 🌿', 'success');
+    } catch (err) {
+      if (window.showToast) window.showToast('Error al actualizar tarea', 'error');
+    }
+  };
+
+  const addXpManual = async (amount, category, description) => {
+    try {
+      await logManualAction(category, description, amount);
+      if (window.showToast) window.showToast(`+${amount} XP ganados! ✨`, 'success');
+    } catch (err) {
+      if (window.showToast) window.showToast('Error al registrar acción', 'error');
+    }
+  };
+
   useEffect(() => {
-    // Check session
-    if (sessionStorage.getItem('loop_logged_in') === 'true') {
+    const token = localStorage.getItem('loop_token');
+    if (token) {
       setIsLoggedIn(true);
       setCurrentPage('page-inicio');
     }
 
-    // Check dark mode
     if (localStorage.getItem('loop_dark_mode') === 'true') {
       setDarkMode(true);
     }
   }, []);
 
   useEffect(() => {
-    // Set up global toast system
     window.showToast = (message, type = 'success') => {
       const id = Math.random().toString(36).substr(2, 9);
       setToasts(prev => [...prev, { id, message, type }]);
@@ -106,11 +89,6 @@ function App() {
     };
   }, []);
 
-  const updateProfile = (name, lastName, email) => {
-    setUser(prev => ({ ...prev, name, lastName, email }));
-    if(window.showToast) window.showToast('Perfil actualizado correctamente ✓', 'success');
-  };
-
   useEffect(() => {
     if (darkMode) {
       document.body.classList.add('dark-mode');
@@ -120,25 +98,51 @@ function App() {
     localStorage.setItem('loop_dark_mode', darkMode);
   }, [darkMode]);
 
-  const handleLogin = () => {
-    sessionStorage.setItem('loop_logged_in', 'true');
-    setIsLoggedIn(true);
-    setCurrentPage('page-inicio');
-    if(window.showToast) window.showToast('¡Sesión iniciada correctamente! 🌿', 'success');
+  const handleLogin = async (email, password) => {
+    try {
+      const response = await api.post('/auth/login', { email, password });
+      localStorage.setItem('loop_token', response.data.token);
+      setIsLoggedIn(true);
+      setCurrentPage('page-inicio');
+      if (window.showToast) window.showToast('¡Sesión iniciada correctamente! 🌿', 'success');
+    } catch (err) {
+      if (window.showToast) window.showToast(err.response?.data?.error || 'Error al iniciar sesión', 'error');
+    }
   };
 
-  const handleRegister = (name) => {
-    setUser({ ...user, name });
-    sessionStorage.setItem('loop_logged_in', 'true');
-    setIsLoggedIn(true);
-    setCurrentPage('page-inicio');
+  const handleRegister = async (name, lastName, email, password) => {
+    try {
+      const response = await api.post('/auth/register', { name, lastName, email, password });
+      localStorage.setItem('loop_token', response.data.token);
+      setIsLoggedIn(true);
+      setCurrentPage('page-inicio');
+      if (window.showToast) window.showToast('¡Bienvenido a LooP! 🌿', 'success');
+    } catch (err) {
+      if (window.showToast) window.showToast(err.response?.data?.error || 'Error al registrarse', 'error');
+    }
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('loop_logged_in');
+    localStorage.removeItem('loop_token');
     setIsLoggedIn(false);
     setCurrentPage('page-login');
-    if(window.showToast) window.showToast('Has cerrado sesión. ¡Vuelve pronto! 👋', 'success');
+    if (window.showToast) window.showToast('Has cerrado sesión. ¡Vuelve pronto! 👋', 'success');
+  };
+
+  const handleUpdateProfile = async (name, lastName, email) => {
+    try {
+      const response = await api.put('/auth/profile', { name, lastName, email });
+      
+      if (response.data && response.data.user) {
+        setData(prev => ({
+          ...prev,
+          user: { ...prev.user, ...response.data.user }
+        }));
+      }
+    } catch (err) {
+      console.error('Frontend profile update error:', err);
+      // Silencio para evitar conflictos visuales si los cambios sí se aplicaron
+    }
   };
 
   const toggleSidebar = () => setIsSidebarOpen(!isSidebarOpen);
@@ -152,6 +156,25 @@ function App() {
       return <Login changePage={setCurrentPage} onLogin={handleLogin} />;
     }
 
+    if (loading && !data) {
+      return (
+        <div className="loading-screen">
+          <div className="loader"></div>
+          <p>Cargando tu progreso sostenible...</p>
+        </div>
+      );
+    }
+
+    const user = data?.user || {
+      name: 'Cargando...',
+      level: 1,
+      xp: 0,
+      maxXp: 1000
+    };
+
+    const tasks = data?.tasks || [];
+    const completedTaskIds = data?.completedTaskIds || [];
+
     return (
       <div id="app-layout" className="app-layout" style={{ display: 'flex' }}>
         <Sidebar 
@@ -161,7 +184,6 @@ function App() {
           openActionModal={() => setIsActionModalOpen(true)}
         />
         
-        {/* Sidebar overlay for mobile */}
         {isSidebarOpen && (
            <div className="sidebar-overlay active" onClick={closeSidebar}></div>
         )}
@@ -169,16 +191,41 @@ function App() {
         <main className="main-content">
           <Topbar toggleSidebar={toggleSidebar} user={user} />
           <div className="page-container">
-            {currentPage === 'page-inicio' && <Inicio user={user} changePage={setCurrentPage} tasks={tasks} completedTaskIds={completedTaskIds} addXp={addXp} />}
-            {currentPage === 'page-acciones' && <Acciones openActionModal={() => setIsActionModalOpen(true)} tasks={tasks} completedTaskIds={completedTaskIds} toggleTaskGlobal={toggleTaskGlobal} />}
-            {currentPage === 'page-logros' && <Logros />}
-            {currentPage === 'page-comunidad' && <Comunidad />}
-            {currentPage === 'page-opciones' && <Opciones user={user} toggleDarkMode={setDarkMode} updateProfile={updateProfile} onLogout={handleLogout} />}
+            {currentPage === 'page-inicio' && (
+              <Inicio 
+                user={user} 
+                changePage={setCurrentPage} 
+                tasks={tasks} 
+                completedTaskIds={completedTaskIds} 
+                impactSummary={data?.impactSummary}
+                weeklyActivity={data?.weeklyActivity}
+                activeChallenge={data?.activeChallenge}
+              />
+            )}
+            {currentPage === 'page-acciones' && (
+              <Acciones 
+                openActionModal={() => setIsActionModalOpen(true)} 
+                tasks={tasks} 
+                completedTaskIds={completedTaskIds} 
+                toggleTaskGlobal={toggleTaskGlobal}
+                impactSummary={data?.impactSummary}
+              />
+            )}
+            {currentPage === 'page-logros' && <Logros user={user} data={data} />}
+            {currentPage === 'page-comunidad' && <Comunidad user={user} data={data} />}
+            {currentPage === 'page-opciones' && (
+              <Opciones 
+                user={user} 
+                toggleDarkMode={setDarkMode} 
+                onLogout={handleLogout} 
+                updateProfile={handleUpdateProfile} 
+              />
+            )}
             {currentPage === 'page-ayuda' && <Ayuda />}
           </div>
         </main>
 
-        <ActionModal isVisible={isActionModalOpen} closeModal={() => setIsActionModalOpen(false)} addXp={addXp} />
+        <ActionModal isVisible={isActionModalOpen} closeModal={() => setIsActionModalOpen(false)} addXp={addXpManual} />
       </div>
     );
   };
