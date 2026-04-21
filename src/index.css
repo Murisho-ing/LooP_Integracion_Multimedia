@@ -331,25 +331,39 @@ img {
 .auth-brand {
     text-align: center;
     z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
 }
 
-.logo-text-large {
-    font-size: clamp(2.5rem, 5vw, 3.5rem);
-    font-weight: 900;
-    color: white;
-    letter-spacing: -2px;
+.auth-logo {
+    position: relative;
+    margin-bottom: var(--space-4);
 }
 
-.logo-text-large .logo-accent {
-    color: var(--green-300);
+.auth-logo::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 140px;
+    height: 140px;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+    pointer-events: none;
 }
 
 .auth-tagline {
     color: var(--green-200);
-    font-size: clamp(0.95rem, 2vw, 1.1rem);
-    margin-top: var(--space-4);
-    line-height: 1.7;
-    opacity: 0.9;
+    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    font-weight: 500;
+    margin-top: var(--space-2);
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    opacity: 0.95;
 }
 
 .auth-illustration {
@@ -674,8 +688,15 @@ img {
     height: 90px;
     width: auto;
     object-fit: contain;
-    margin-bottom: var(--space-4);
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+    margin: 0 auto var(--space-4) auto;
+    display: block;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.15));
+    transition: transform var(--transition), filter var(--transition);
+}
+
+.logo-img-large:hover {
+    transform: translateY(-2px) scale(1.02);
+    filter: drop-shadow(0 6px 16px rgba(0,0,0,0.2));
 }
 
 .logo-text {

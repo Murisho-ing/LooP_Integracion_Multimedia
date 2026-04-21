@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logo blanco verde claro.png';
 
 const Login = ({ changePage, onLogin }) => {
     const [email, setEmail] = useState('');

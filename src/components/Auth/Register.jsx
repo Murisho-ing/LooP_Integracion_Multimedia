@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import logo from '../../assets/logo.png';
+import logo from '../../assets/logo blanco verde claro.png';
 
 const Register = ({ changePage, onRegister }) => {
     const [name, setName] = useState('');
