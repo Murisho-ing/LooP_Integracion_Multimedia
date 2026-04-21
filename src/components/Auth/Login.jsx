@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import logo from '../../assets/logo.png';
 
 const Login = ({ changePage, onLogin }) => {
     const [email, setEmail] = useState('');
@@ -17,8 +18,8 @@ const Login = ({ changePage, onLogin }) => {
             <div className="auth-container">
                 <div className="auth-left">
                     <div className="auth-brand">
-                        <div className="auth-logo-placeholder" id="auth-logo-login">
-                            <span className="logo-text-large">L<span className="logo-accent">oo</span>P</span>
+                        <div className="auth-logo" id="auth-logo-login">
+                            <img src={logo} alt="LooP Logo" className="logo-img-large" />
                         </div>
                         <p className="auth-tagline">Cada acción cuenta.<br/>Tu impacto empieza aquí.</p>
                     </div>

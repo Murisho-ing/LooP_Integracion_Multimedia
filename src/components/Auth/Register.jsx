@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import logo from '../../assets/logo.png';
 
 const Register = ({ changePage, onRegister }) => {
     const [name, setName] = useState('');
@@ -25,8 +26,8 @@ const Register = ({ changePage, onRegister }) => {
             <div className="auth-container">
                 <div className="auth-left">
                     <div className="auth-brand">
-                        <div className="auth-logo-placeholder" id="auth-logo-register">
-                            <span className="logo-text-large">L<span className="logo-accent">oo</span>P</span>
+                        <div className="auth-logo" id="auth-logo-register">
+                            <img src={logo} alt="LooP Logo" className="logo-img-large" />
                         </div>
                         <p className="auth-tagline">Únete a la comunidad<br/>que cambia el mundo.</p>
                     </div>

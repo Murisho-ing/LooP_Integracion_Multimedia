@@ -1,11 +1,12 @@
 import React from 'react';
+import logo from '../../assets/logo.png';
 
 const Sidebar = ({ currentPage, changePage, onLogout, openActionModal }) => {
     return (
         <aside className="sidebar" id="sidebar">
             <div className="sidebar-header">
                 <div className="sidebar-logo" id="sidebar-logo">
-                    <span className="logo-text">L<span className="logo-accent">oo</span>P</span>
+                    <img src={logo} alt="LooP Logo" className="logo-img" />
                 </div>
             </div>
             <nav className="sidebar-nav">

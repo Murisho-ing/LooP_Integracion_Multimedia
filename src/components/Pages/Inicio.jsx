@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import leaves from '../../assets/leaves.png';
 
 const impactStats = [
     { label: 'Reutilizaste', number: '12 veces', msg: 'Eso ya es un gran compromiso' },
@@ -219,7 +220,11 @@ const Inicio = ({ user, changePage, tasks, completedTaskIds }) => {
                 </div>
 
                 {/* Impacto en Detalle */}
-                <div className="card card-impact" id="card-impact">
+                <div className="card card-impact card-with-bg" id="card-impact">
+                    <div className="card-background">
+                        <img src={leaves} alt="" className="card-bg-img" />
+                        <div className="card-bg-overlay"></div>
+                    </div>
                     <div className="impact-overlay" style={{ transition: 'all 0.3s ease' }}>
                         <span className="card-tag tag-light">Tu impacto en detalle</span>
                         <div className="impact-stat">
@@ -264,4 +269,3 @@ const Inicio = ({ user, changePage, tasks, completedTaskIds }) => {
 };
 
 export default Inicio;
-
