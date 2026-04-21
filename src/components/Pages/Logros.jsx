@@ -18,8 +18,8 @@ const Logros = ({ user, data }) => {
     if (totalActions >= 10) unlockedCount += 1; // Reciclador (aprox)
     
     unlockedCount = Math.min(unlockedCount, 20);
-    const totalLogrosVisible = 20;
-    const progressPercent = Math.round((unlockedCount / totalLogrosVisible) * 100);
+    const totalLogros = 20;
+    const progressPercent = Math.round((unlockedCount / totalLogros) * 100);
 
     return (
         <div id="page-logros" className="page active-page">
